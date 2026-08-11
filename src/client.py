@@ -26,10 +26,14 @@ def generate(system, messages, **kwargs):
             {"role": "user", "content": messages}
         ]
     else:
-        formatted_messages = [
-            {"role": "system", "content": system},
-            *messages
-        ]
+        # If system role is already present in messages list, don't duplicate it
+        if messages and messages[0].get("role") == "system":
+            formatted_messages = messages
+        else:
+            formatted_messages = [
+                {"role": "system", "content": system},
+                *messages
+            ]
 
     return call_with_retries(
         lambda: client.chat.completions.create(

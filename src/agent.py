@@ -1,4 +1,6 @@
 # pyrefly: ignore [missing-import]
+from memory.structured_memory import extract_session_facts
+# pyrefly: ignore [missing-import]
 from src.tools.refund_check import refund_check, REFUND_CHECK_SCHEMA
 # pyrefly: ignore [missing-import]
 from src.tools.order_lookup import lookup_order, LOOKUP_ORDER_SCHEMA
@@ -8,6 +10,8 @@ from src.tools.validation import validate_tool_args
 from src.client import generate
 # pyrefly: ignore [missing-import]
 from src.tools.schemas import GROQ_TOOLS
+# pyrefly: ignore [missing-import]
+from src.state import ConversationState
 import json
 
 
@@ -40,17 +44,29 @@ def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict
     except Exception as e:
         return {"error": f"Tool execution failed: {e}"}
 
-def run_agent(user_query: str, system_instruction: str, messages: list[dict], max_turns: int = 5) -> dict:
-    if not messages:
-        messages.append({"role": "system", "content": system_instruction})
-    messages.append({"role": "user", "content": user_query})
+def run_agent(user_query: str, system_instruction: str, state: ConversationState | list[dict], max_turns: int = 5) -> dict:
+    if isinstance(state, ConversationState):
+        # Dynamically extract key facts from user input via LLM
+        extracted_facts = extract_session_facts(user_query)
+        ignored_values = {"not mentioned", "none", "n/a", "unknown", "null", "not specified"}
+        for key, val in extracted_facts.items():
+            if val and str(val).lower() not in ignored_values:
+                state.remember(key, str(val))
+
+        state.add_turn("user", user_query)
+        messages = state.get_messages(system_instruction)
+    else:
+        messages = state
+        if not messages:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": user_query})
 
     for _ in range(max_turns):
         response = generate(system_instruction, messages, tools=GROQ_TOOLS)
         assistant_message = response.choices[0].message
 
         if assistant_message.tool_calls:
-            messages.append({
+            assistant_turn = {
                 "role": "assistant",
                 "content": assistant_message.content,
                 "tool_calls": [
@@ -64,21 +80,29 @@ def run_agent(user_query: str, system_instruction: str, messages: list[dict], ma
                     }
                     for tc in assistant_message.tool_calls
                 ],
-            })
+            }
+            messages.append(assistant_turn)
+            if isinstance(state, ConversationState):
+                state.history.append(assistant_turn)
             
             for tool_call in assistant_message.tool_calls:
                 tool_name = tool_call.function.name
                 tool_args = json.loads(tool_call.function.arguments)
                 result = execute_tool(tool_name, tool_args)
 
-                messages.append({
+                tool_turn = {
                     "role": "tool",
                     "tool_call_id": tool_call.id,
                     "content": json.dumps(result),
-                })
+                }
+                messages.append(tool_turn)
+                if isinstance(state, ConversationState):
+                    state.history.append(tool_turn)
         else:
-            # Model generated final text output
-            return {"message": assistant_message.content or ""}
+            final_content = assistant_message.content or ""
+            if isinstance(state, ConversationState):
+                state.add_turn("assistant", final_content)
+            return {"message": final_content}
 
     return {"error": "Exceeded maximum tool execution turns"}
     
