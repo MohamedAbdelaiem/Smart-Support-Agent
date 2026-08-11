@@ -1,0 +1,23 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "customer_name": "Alice Smith",
+    "status": "delivered",
+    "items": ["Wireless Headphones"],
+    "total": 99.99
+  },
+  {
+    "order_id": "ORD-1002",
+    "customer_name": "Bob Jones",
+    "status": "shipped",
+    "items": ["Mechanical Keyboard", "Mousepad"],
+    "total": 149.50
+  },
+  {
+    "order_id": "ORD-1003",
+    "customer_name": "Charlie Brown",
+    "status": "processing",
+    "items": ["USB-C Hub"],
+    "total": 35.00
+  }
+]
