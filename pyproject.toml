@@ -1,0 +1,26 @@
+[project]
+name = "smart-support-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "mohamed3b3az", email = "mohamedabdelaziem96@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "groq>=1.6.0",
+    "jsonschema>=4.26.0",
+    "pytest>=9.1.1",
+    "python-dotenv>=1.2.2",
+]
+
+[project.scripts]
+smart-support-agent = "smart_support_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
