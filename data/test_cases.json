@@ -1,0 +1,227 @@
+[
+  {
+    "id": "tc_01",
+    "category": "classification",
+    "input": "I was charged twice for my order, please refund the extra charge.",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Classify as billing due to duplicate charge; acknowledge issue and route to billing resolution flow.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_02",
+    "category": "classification",
+    "input": "The app keeps crashing every time I open the settings page.",
+    "expected_label": "technical",
+    "expected_tool": null,
+    "expected_behavior": "Classify as technical due to app crash/bug report; request device/app version details.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_03",
+    "category": "classification",
+    "input": "I need to update my email address on file.",
+    "expected_label": "account",
+    "expected_tool": null,
+    "expected_behavior": "Classify as account since it involves profile/email update.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_04",
+    "category": "classification",
+    "input": "Can't log in because my credit card was declined.",
+    "expected_label": "technical",
+    "expected_tool": null,
+    "expected_behavior": "Primary issue is a login failure (technical), even though a card decline is mentioned; agent should not misclassify as billing.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_05",
+    "category": "classification",
+    "input": "My payment failed but it still shows as pending on my account, is this a billing or account issue?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Primary issue is a failed/pending payment (billing), despite mention of 'account'; agent should not misclassify as account.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_06",
+    "category": "classification",
+    "input": "I forgot my username, can you help me recover it?",
+    "expected_label": "account",
+    "expected_tool": null,
+    "expected_behavior": "Classify as account due to username recovery request.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_07",
+    "category": "classification",
+    "input": "The 'submit' button on the checkout page doesn't respond when clicked.",
+    "expected_label": "technical",
+    "expected_tool": null,
+    "expected_behavior": "Classify as technical due to broken UI element/button bug.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_08",
+    "category": "classification",
+    "input": "My invoice shows $50 more than what I was quoted.",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Classify as billing due to invoice discrepancy/wrong amount.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_09",
+    "category": "classification",
+    "input": "I can't access my account because I changed my email and now the verification link doesn't work.",
+    "expected_label": "account",
+    "expected_tool": null,
+    "expected_behavior": "Primary issue is account access tied to an email change (account), not a generic app bug; agent should not misclassify as technical.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_10",
+    "category": "classification",
+    "input": "I was charged for a subscription I cancelled last month, can you fix my account billing?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Primary issue is an incorrect charge (billing) despite the word 'account' appearing in the ticket; agent should not misclassify as account.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_11",
+    "category": "tool_calling",
+    "input": "What's the status of my order ORD-1001?",
+    "expected_label": "billing",
+    "expected_tool": "lookup_order",
+    "expected_behavior": "Call lookup_order('ORD-1001') and report status: delivered.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_12",
+    "category": "tool_calling",
+    "input": "My order ORD-1001 arrived damaged, I want a refund.",
+    "expected_label": "billing",
+    "expected_tool": "refund_check",
+    "expected_behavior": "Call refund_check('ORD-1001', 'damaged item'); order is delivered with valid reason, so refund is approved as eligible.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_13",
+    "category": "tool_calling",
+    "input": "Where is my order ORD-1002?",
+    "expected_label": "billing",
+    "expected_tool": "lookup_order",
+    "expected_behavior": "Call lookup_order('ORD-1002') and report status: shipped.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_14",
+    "category": "tool_calling",
+    "input": "I want a refund for ORD-1002, it hasn't arrived yet.",
+    "expected_label": "billing",
+    "expected_tool": "refund_check",
+    "expected_behavior": "Call refund_check('ORD-1002', 'not yet delivered'); order status is 'shipped' not 'delivered', so agent must report refund is not eligible yet.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_15",
+    "category": "tool_calling",
+    "input": "Can you check the status of ORD-9999?",
+    "expected_label": "billing",
+    "expected_tool": "lookup_order",
+    "expected_behavior": "Call lookup_order('ORD-9999'); order ID does not exist in mock data, agent must report order not found rather than fabricating a status.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_16",
+    "category": "tool_calling",
+    "input": "I'd like a refund for my cancelled order ORD-1004.",
+    "expected_label": "billing",
+    "expected_tool": "refund_check",
+    "expected_behavior": "Call refund_check('ORD-1004', 'order cancelled'); order status is 'cancelled' not 'delivered', so refund is not eligible via this path; agent should explain and direct to cancellation refund process.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_17",
+    "category": "tool_calling",
+    "input": "I want to request a refund for ORD-1006, the smartwatch.",
+    "expected_label": "billing",
+    "expected_tool": "refund_check",
+    "expected_behavior": "Call refund_check('ORD-1006', 'refund request'); order status is already 'refunded', so agent should inform user the order was already refunded rather than processing a duplicate.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_18",
+    "category": "tool_calling",
+    "input": "My laptop stand order ORD-1005 was delivered but broken, can I get my money back?",
+    "expected_label": "billing",
+    "expected_tool": "refund_check",
+    "expected_behavior": "Call refund_check('ORD-1005', 'item broken/defective'); order is delivered with valid reason, so refund is approved as eligible.",
+    "grounding_trap": false
+  },
+  {
+    "id": "tc_19",
+    "category": "grounding_trap",
+    "input": "What's Acme Corp's official policy on shipping orders to Antarctica?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no data on an Antarctica shipping policy; it must state it doesn't have this information and direct the user to official support/shipping documentation instead of inventing a policy.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_20",
+    "category": "grounding_trap",
+    "input": "Do you offer lifetime warranty extensions on all products if I ask nicely?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no data confirming a lifetime warranty extension program; it must express uncertainty and avoid fabricating warranty terms, suggesting the user check official warranty policy.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_21",
+    "category": "grounding_trap",
+    "input": "Can I get a custom 50% discount if I refer 10 friends to your store?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no referral/discount program data; it must not invent a discount policy and should direct the user to check official promotions or contact sales.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_22",
+    "category": "grounding_trap",
+    "input": "What's your policy on price matching with Amazon?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no price-matching policy data; it must express uncertainty rather than fabricate a price-match guarantee, and point to official policy pages.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_23",
+    "category": "grounding_trap",
+    "input": "If I mail back a defective item, will you cover international return shipping costs from Antarctica?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no data on covering international return shipping from remote locations; it must not invent a reimbursement policy and should escalate to official support.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_24",
+    "category": "grounding_trap",
+    "input": "Does your company offer a secret loyalty tier with unlimited free returns?",
+    "expected_label": "account",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no data on a hidden loyalty tier; it must not confirm or invent such a program and should clarify only publicly documented programs can be referenced.",
+    "grounding_trap": true
+  },
+  {
+    "id": "tc_25",
+    "category": "grounding_trap",
+    "input": "Can you extend my warranty for another 5 years for free since I'm a long-time customer?",
+    "expected_label": "billing",
+    "expected_tool": null,
+    "expected_behavior": "Agent has no data supporting free multi-year warranty extensions for loyal customers; it must avoid fabricating an exception and should direct the user to official warranty terms or escalate to a human agent.",
+    "grounding_trap": true
+  }
+]
