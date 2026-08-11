@@ -14,6 +14,7 @@ LOOKUP_ORDER_SCHEMA = {
         }
     },
     "required": ["order_id"],
+    "additionalProperties": False,
 }
 
 

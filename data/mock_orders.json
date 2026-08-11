@@ -19,5 +19,40 @@
     "status": "processing",
     "items": ["USB-C Hub"],
     "total": 35.00
+  },
+  {
+    "order_id": "ORD-1004",
+    "customer_name": "David Wilson",
+    "status": "cancelled",
+    "items": ["Gaming Monitor", "HDMI Cable"],
+    "total": 329.99
+  },
+  {
+    "order_id": "ORD-1005",
+    "customer_name": "Emma Davis",
+    "status": "delivered",
+    "items": ["Laptop Stand", "Wireless Mouse", "USB-C Cable"],
+    "total": 87.75
+  },
+  {
+    "order_id": "ORD-1006",
+    "customer_name": "Frank Miller",
+    "status": "refunded",
+    "items": ["Smartwatch"],
+    "total": 199.99
+  },
+  {
+    "order_id": "ORD-1007",
+    "customer_name": "Alice Smith",
+    "status": "shipped",
+    "items": ["Webcam", "Microphone"],
+    "total": 174.98
+  },
+  {
+    "order_id": "ORD-1008",
+    "customer_name": "Grace Taylor",
+    "status": "processing",
+    "items": ["External SSD 1TB", "USB-C Cable"],
+    "total": 124.99
   }
 ]
