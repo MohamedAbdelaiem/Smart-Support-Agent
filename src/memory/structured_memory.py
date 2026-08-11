@@ -1,6 +1,7 @@
 import json
 # pyrefly: ignore [missing-import]
 from src.client import generate
+from langsmith import traceable
 
 MEMORY_EXTRACTION_SYSTEM = """
 You are an autonomous memory extraction system for a customer support agent.
@@ -19,7 +20,7 @@ Rules:
 - If no entities are found, return `{}`.
 """
 
-
+@traceable(name="Extract Session Facts")
 def extract_session_facts(user_message: str) -> dict:
     """Uses LLM structured output to extract session facts dynamically from user turns."""
     try:

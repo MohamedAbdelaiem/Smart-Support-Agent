@@ -12,6 +12,7 @@ from src.client import generate
 from src.tools.schemas import GROQ_TOOLS
 # pyrefly: ignore [missing-import]
 from src.state import ConversationState
+from langsmith import traceable
 import json
 
 
@@ -26,7 +27,7 @@ TOOL_SCHEMAS = {
     "refund_check": REFUND_CHECK_SCHEMA,
 }
 
-
+@traceable(name="Execute Tool")
 def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict:
     """Executes a tool with argument validation and error handling."""
     if name not in TOOL_REGISTRY:
@@ -44,6 +45,7 @@ def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict
     except Exception as e:
         return {"error": f"Tool execution failed: {e}"}
 
+@traceable(name="Run Support Agent")
 def run_agent(user_query: str, system_instruction: str, state: ConversationState | list[dict], max_turns: int = 5) -> dict:
     # Enforce strict native function calling instructions
     tool_instructions = (

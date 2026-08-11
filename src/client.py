@@ -1,3 +1,5 @@
+# pyrefly: ignore [missing-import]
+from src.observability import log_request
 import time
 from groq import Groq,RateLimitError,APITimeoutError,APIConnectionError,InternalServerError,APIError
 from dotenv import load_dotenv
@@ -38,7 +40,8 @@ def generate(system, messages, **kwargs):
     if "tools" in kwargs and "tool_choice" not in kwargs:
         kwargs["tool_choice"] = "auto"
 
-    return call_with_retries(
+    start_time = time.perf_counter()
+    response = call_with_retries(
         lambda: client.chat.completions.create(
             model=model,
             messages=formatted_messages,
@@ -46,6 +49,22 @@ def generate(system, messages, **kwargs):
             **kwargs
         )
     )
+
+    latency_ms = (time.perf_counter() - start_time)*1000
+
+    input_tokens = response.usage.prompt_tokens if response.usage else 0
+    output_tokens = response.usage.completion_tokens if response.usage else 0
+
+    log_request(
+        provider="groq",
+        model=model,
+        latency_ms=latency_ms,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        tool_calls = [tc.function.name for tc in response.choices[0].message.tool_calls] if response.choices[0].message.tool_calls else None
+    )
+
+    return response
     
 def generate_stream(system, messages,**kwargs):
     model = kwargs.pop("model", "llama-3.3-70b-versatile")
