@@ -15,7 +15,10 @@ class ConversationState:
         """Builds formatted messages list for LLM call, appending facts to system prompt."""
         system_content = system_instruction
         if self.facts:
-            facts_summary = ", ".join(f"{k}={v}" for k, v in self.facts.items())
-            system_content += f"\n\nSession Memory: [{facts_summary}]"
+            facts_summary = "\n".join(f"- {k}: {v}" for k, v in self.facts.items())
+            system_content += (
+                f"\n\n[Internal Customer Context (Do NOT print or echo key=value strings to the customer; speak naturally)]:\n"
+                f"{facts_summary}"
+            )
 
         return [{"role": "system", "content": system_content}] + self.history

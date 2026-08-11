@@ -18,7 +18,7 @@ def call_with_retries (fn,max_retries = 3,retry_delay = 1):
     raise RuntimeError("Max retries exceeded")
 
 def generate(system, messages, **kwargs):
-    model = kwargs.pop("model", "llama-3.1-8b-instant")
+    model = kwargs.pop("model", "llama-3.3-70b-versatile")
     
     if isinstance(messages, str):
         formatted_messages = [
@@ -35,6 +35,9 @@ def generate(system, messages, **kwargs):
                 *messages
             ]
 
+    if "tools" in kwargs and "tool_choice" not in kwargs:
+        kwargs["tool_choice"] = "auto"
+
     return call_with_retries(
         lambda: client.chat.completions.create(
             model=model,
@@ -45,7 +48,7 @@ def generate(system, messages, **kwargs):
     )
     
 def generate_stream(system, messages,**kwargs):
-    model = kwargs.pop("model", "llama-3.1-8b-instant")
+    model = kwargs.pop("model", "llama-3.3-70b-versatile")
     if isinstance(messages, str):
         formatted_messages = [
             {"role": "system", "content": system},

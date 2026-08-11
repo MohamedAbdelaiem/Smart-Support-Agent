@@ -45,20 +45,27 @@ def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict
         return {"error": f"Tool execution failed: {e}"}
 
 def run_agent(user_query: str, system_instruction: str, state: ConversationState | list[dict], max_turns: int = 5) -> dict:
+    # Enforce strict native function calling instructions
+    tool_instructions = (
+        "\n\nIMPORTANT TOOL INSTRUCTION: When calling tools, generate native tool_calls ONLY. "
+        "Do not output function tags or text like <function=...> in your text content."
+    )
+    full_system_instruction = system_instruction + tool_instructions
+
     if isinstance(state, ConversationState):
         # Dynamically extract key facts from user input via LLM
         extracted_facts = extract_session_facts(user_query)
-        ignored_values = {"not mentioned", "none", "n/a", "unknown", "null", "not specified"}
+        ignored_values = {"not mentioned", "none", "n/a", "unknown", "null", "not specified","unspecified"}
         for key, val in extracted_facts.items():
             if val and str(val).lower() not in ignored_values:
                 state.remember(key, str(val))
 
         state.add_turn("user", user_query)
-        messages = state.get_messages(system_instruction)
+        messages = state.get_messages(full_system_instruction)
     else:
         messages = state
         if not messages:
-            messages.append({"role": "system", "content": system_instruction})
+            messages.append({"role": "system", "content": full_system_instruction})
         messages.append({"role": "user", "content": user_query})
 
     for _ in range(max_turns):
@@ -87,7 +94,19 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
             
             for tool_call in assistant_message.tool_calls:
                 tool_name = tool_call.function.name
-                tool_args = json.loads(tool_call.function.arguments)
+                
+                # Sanitize malformed tool names (e.g., 'refund_check={"order_id": ...}')
+                if "=" in tool_name or "{" in tool_name:
+                    if "refund_check" in tool_name:
+                        tool_name = "refund_check"
+                    elif "lookup_order" in tool_name:
+                        tool_name = "lookup_order"
+
+                try:
+                    tool_args = json.loads(tool_call.function.arguments)
+                except Exception:
+                    tool_args = {}
+
                 result = execute_tool(tool_name, tool_args)
 
                 tool_turn = {
