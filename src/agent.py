@@ -46,7 +46,7 @@ def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict
         return {"error": f"Tool execution failed: {e}"}
 
 @traceable(name="Run Support Agent")
-def run_agent(user_query: str, system_instruction: str, state: ConversationState | list[dict], max_turns: int = 5) -> dict:
+def run_agent(user_query: str, system_instruction: str, state: ConversationState | list[dict], max_turns: int = 5 ,provider ='groq') -> dict:
     # Enforce strict native function calling instructions
     tool_instructions = (
         "\n\nIMPORTANT TOOL INSTRUCTION: When calling tools, generate native tool_calls ONLY. "
@@ -56,7 +56,7 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
 
     if isinstance(state, ConversationState):
         # Dynamically extract key facts from user input via LLM
-        extracted_facts = extract_session_facts(user_query)
+        extracted_facts = extract_session_facts(user_query, provider=provider)
         ignored_values = {"not mentioned", "none", "n/a", "unknown", "null", "not specified","unspecified"}
         for key, val in extracted_facts.items():
             if val and str(val).lower() not in ignored_values:
@@ -71,7 +71,7 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
         messages.append({"role": "user", "content": user_query})
 
     for _ in range(max_turns):
-        response = generate(system_instruction, messages, tools=GROQ_TOOLS)
+        response = generate(system_instruction, messages, tools=GROQ_TOOLS,provider=provider)
         assistant_message = response.choices[0].message
 
         if assistant_message.tool_calls:

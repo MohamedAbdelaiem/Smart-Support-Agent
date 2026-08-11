@@ -3,9 +3,16 @@ from src.observability import log_request
 import time
 from groq import Groq,RateLimitError,APITimeoutError,APIConnectionError,InternalServerError,APIError
 from dotenv import load_dotenv
+from openai import OpenAI
+import os
 
-load_dotenv()
-client = Groq()
+load_dotenv()   
+groq_client = Groq()
+openrouter_client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ.get("OPENROUTER_API_KEY"),
+)
+
 
 def call_with_retries (fn,max_retries = 3,retry_delay = 1):
     for attempt in range(max_retries):
@@ -20,7 +27,14 @@ def call_with_retries (fn,max_retries = 3,retry_delay = 1):
     raise RuntimeError("Max retries exceeded")
 
 def generate(system, messages, **kwargs):
-    model = kwargs.pop("model", "llama-3.3-70b-versatile")
+    provider = kwargs.pop("provider", "groq").lower()
+    if provider == "openrouter":
+        active_client = openrouter_client
+        model = kwargs.pop("model", "qwen/qwen3-32b")
+    else:
+        active_client = groq_client
+        model = kwargs.pop("model", "llama-3.3-70b-versatile")
+
     
     if isinstance(messages, str):
         formatted_messages = [
@@ -42,7 +56,7 @@ def generate(system, messages, **kwargs):
 
     start_time = time.perf_counter()
     response = call_with_retries(
-        lambda: client.chat.completions.create(
+        lambda: active_client.chat.completions.create(
             model=model,
             messages=formatted_messages,
             max_tokens=1000,
@@ -56,7 +70,7 @@ def generate(system, messages, **kwargs):
     output_tokens = response.usage.completion_tokens if response.usage else 0
 
     log_request(
-        provider="groq",
+        provider=provider,
         model=model,
         latency_ms=latency_ms,
         input_tokens=input_tokens,
@@ -80,7 +94,7 @@ def generate_stream(system, messages,**kwargs):
         ]
     
     response= call_with_retries(
-        lambda: client.chat.completions.create(
+        lambda: groq_client.chat.completions.create(
             model=model,
             messages=formatted_messages,
             max_tokens=1000,

@@ -8,6 +8,8 @@ def simulate_long_conversation():
     print("  STAGE 5 DEMO: AUTONOMOUS MEMORY EXTRACTION TEST ")
     print("==================================================\n")
 
+    provider = "openrouter"
+
     state = ConversationState()
     system_instruction = (
         "You are a helpful customer support agent for Acme Corp. "
@@ -27,7 +29,7 @@ def simulate_long_conversation():
 
     for label, user_input in turns:
         print(f"[{label}] User: {user_input}")
-        res = run_agent(user_input, system_instruction, state)
+        res = run_agent(user_input, system_instruction, state, provider=provider)
         print(f"[{label}] Agent: {res.get('message')}\n")
         print(f"--> Current Remembered Facts: {state.facts}\n")
         print("-" * 50)

@@ -11,6 +11,7 @@ dependencies = [
     "groq>=1.6.0",
     "jsonschema>=4.26.0",
     "langsmith>=0.10.17",
+    "openai>=2.54.0",
     "pytest>=9.1.1",
     "python-dotenv>=1.2.2",
 ]

@@ -21,13 +21,14 @@ Rules:
 """
 
 @traceable(name="Extract Session Facts")
-def extract_session_facts(user_message: str) -> dict:
+def extract_session_facts(user_message: str, provider: str = "groq") -> dict:
     """Uses LLM structured output to extract session facts dynamically from user turns."""
     try:
         response = generate(
             system=MEMORY_EXTRACTION_SYSTEM,
             messages=user_message,
             response_format={"type": "json_object"},
+            provider=provider,
         )
         content = response.choices[0].message.content
         if content:
