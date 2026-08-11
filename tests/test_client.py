@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 import pytest
 from groq import APITimeoutError, RateLimitError
-from src.client import call_with_retries, generate
+from src.client import call_with_retries, generate,generate_stream
 
 
 def test_call_with_retries_success():
@@ -58,3 +58,25 @@ def test_generate_string_message(mock_create):
         ],
         max_tokens=1000,
     )
+
+@patch('src.client.client.chat.completions.create')
+def test_generate_stream_String_messages(mock_create):
+    """Test generate function correctly formats system and user messages for streaming."""
+    mock_chunk = MagicMock()
+    mock_chunk.choices = [MagicMock(delta=MagicMock(content="Hello!"))]
+    mock_create.return_value = [mock_chunk]
+
+    res = list(generate_stream("System prompt", "User question"))
+    print(res)
+    assert res == ['Hello!']
+    mock_create.assert_called_once_with(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": "System prompt"},
+            {"role": "user", "content": "User question"},
+        ],
+        max_tokens=1000,
+        stream=True,
+    )
+
+    
