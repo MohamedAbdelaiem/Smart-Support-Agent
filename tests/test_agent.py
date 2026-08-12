@@ -1,7 +1,5 @@
-# pyrefly: ignore [missing-import]
 from src.agent import execute_tool
-# pyrefly: ignore [missing-import]
-from src.tools.order_lookup import LOOKUP_ORDER_SCHEMA
+from src.tools.schemas import LOOKUP_ORDER_SCHEMA
 
 def test_execute_tool_success():
     res = execute_tool("lookup_order", {"order_id": "ORD-1001"}, LOOKUP_ORDER_SCHEMA)

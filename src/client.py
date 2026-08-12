@@ -1,6 +1,6 @@
-# pyrefly: ignore [missing-import]
 from src.observability import log_request
 import time
+from typing import Any, cast
 from groq import Groq,RateLimitError,APITimeoutError,APIConnectionError,InternalServerError,APIError
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -27,13 +27,13 @@ def call_with_retries (fn,max_retries = 3,retry_delay = 1):
     raise RuntimeError("Max retries exceeded")
 
 def generate(system, messages, **kwargs):
-    provider = kwargs.pop("provider", "groq").lower()
+    provider = str(kwargs.pop("provider", "groq")).lower()
     if provider == "openrouter":
         active_client = openrouter_client
-        model = kwargs.pop("model", "qwen/qwen3-32b")
+        model = str(kwargs.pop("model", "qwen/qwen3-32b"))
     else:
         active_client = groq_client
-        model = kwargs.pop("model", "llama-3.3-70b-versatile")
+        model = str(kwargs.pop("model", "llama-3.3-70b-versatile"))
 
     
     if isinstance(messages, str):
@@ -58,7 +58,7 @@ def generate(system, messages, **kwargs):
     response = call_with_retries(
         lambda: active_client.chat.completions.create(
             model=model,
-            messages=formatted_messages,
+            messages=cast(Any, formatted_messages),
             max_tokens=1000,
             **kwargs
         )
@@ -81,7 +81,7 @@ def generate(system, messages, **kwargs):
     return response
     
 def generate_stream(system, messages,**kwargs):
-    model = kwargs.pop("model", "llama-3.3-70b-versatile")
+    model = str(kwargs.pop("model", "llama-3.3-70b-versatile"))
     if isinstance(messages, str):
         formatted_messages = [
             {"role": "system", "content": system},
@@ -96,7 +96,7 @@ def generate_stream(system, messages,**kwargs):
     response= call_with_retries(
         lambda: groq_client.chat.completions.create(
             model=model,
-            messages=formatted_messages,
+            messages=cast(Any, formatted_messages),
             max_tokens=1000,
             stream=True,
             **kwargs
