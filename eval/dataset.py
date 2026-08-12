@@ -1,6 +1,5 @@
 import json
 from langsmith import Client
-# pyrefly: ignore [missing-import]
 from eval.config import DATASET_NAME, TEST_CASES_FILE
 
 

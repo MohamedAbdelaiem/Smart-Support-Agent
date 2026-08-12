@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from langsmith import Client, evaluate
 from eval.config import DATASET_NAME
 from eval.dataset import ensure_dataset
-from eval.evaluators import grounding_trap_evaluator
+from eval.evaluators import grounding_trap_evaluator , tool_call_verifier
 from src.agent import run_agent
 from src.prompts.prompts import PROMPT_V1, PROMPT_V2, PROMPT_V3
 
@@ -34,7 +34,7 @@ def run_evaluation(prompt_version: str = "v3", provider: str = "openrouter"):
     return evaluate(
         predict_fn,
         data=DATASET_NAME,
-        evaluators=[grounding_trap_evaluator],
+        evaluators=[grounding_trap_evaluator,tool_call_verifier],
         experiment_prefix=f"agent-{prompt_version}-{provider}-eval",
     )
 

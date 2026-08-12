@@ -63,6 +63,7 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
             messages.append({"role": "system", "content": full_system_instruction})
         messages.append({"role": "user", "content": user_query})
 
+    executed_tools = []
     for _ in range(max_turns):
         response = generate(system_instruction, messages, tools=GROQ_TOOLS,provider=provider)
         assistant_message = response.choices[0].message
@@ -103,6 +104,7 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
                     tool_args = {}
 
                 result = execute_tool(tool_name, tool_args)
+                executed_tools.append({"name": tool_name, "args": tool_args})
 
                 tool_turn = {
                     "role": "tool",
@@ -116,9 +118,9 @@ def run_agent(user_query: str, system_instruction: str, state: ConversationState
             final_content = assistant_message.content or ""
             if isinstance(state, ConversationState):
                 state.add_turn("assistant", final_content)
-            return {"message": final_content}
+            return {"message": final_content, "tool_calls": executed_tools}
 
-    return {"error": "Exceeded maximum tool execution turns"}
+    return {"error": "Exceeded maximum tool execution turns", "tool_calls": executed_tools}
     
 
     
