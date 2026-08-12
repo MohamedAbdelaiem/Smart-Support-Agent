@@ -41,17 +41,19 @@ def test_call_with_retries_timeout_exhaustion(mock_sleep):
     assert mock_fn.call_count == 3
 
 
-@patch("src.client.client.chat.completions.create")
+@patch("src.client.groq_client.chat.completions.create")
 def test_generate_string_message(mock_create):
     """Test generate function correctly formats system and user messages."""
     mock_response = MagicMock()
-    mock_response.choices = [MagicMock(message=MagicMock(content="Hello!"))]
+    mock_response.choices = [MagicMock(message=MagicMock(content="Hello!", tool_calls=None))]
+    mock_response.usage.prompt_tokens = 10
+    mock_response.usage.completion_tokens = 5
     mock_create.return_value = mock_response
 
     res = generate(system="System prompt", messages="User question")
     assert res == mock_response
     mock_create.assert_called_once_with(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": "System prompt"},
             {"role": "user", "content": "User question"},
@@ -59,7 +61,7 @@ def test_generate_string_message(mock_create):
         max_tokens=1000,
     )
 
-@patch('src.client.client.chat.completions.create')
+@patch('src.client.groq_client.chat.completions.create')
 def test_generate_stream_String_messages(mock_create):
     """Test generate function correctly formats system and user messages for streaming."""
     mock_chunk = MagicMock()
@@ -70,7 +72,7 @@ def test_generate_stream_String_messages(mock_create):
     print(res)
     assert res == ['Hello!']
     mock_create.assert_called_once_with(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": "System prompt"},
             {"role": "user", "content": "User question"},
@@ -78,5 +80,6 @@ def test_generate_stream_String_messages(mock_create):
         max_tokens=1000,
         stream=True,
     )
+
 
     

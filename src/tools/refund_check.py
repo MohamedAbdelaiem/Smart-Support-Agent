@@ -1,21 +1,6 @@
-# pyrefly: ignore [missing-import]
 from src.tools.order_lookup import load_mock_orders
 
-REFUND_CHECK_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "order_id": {
-            "type": "string",
-            "description": "The order ID to check refund eligibility for, e.g., 'ORD-1001'",
-        },
-        "reason": {
-            "type": "string",
-            "description": "Brief explanation for why the refund is being requested",
-        },
-    },
-    "required": ["order_id"],
-    "additionalProperties": False,
-}
+
 
 def refund_check(order_id: str, reason: str = "") -> dict:
     """Checks if an order is eligible for a refund."""
@@ -27,30 +12,42 @@ def refund_check(order_id: str, reason: str = "") -> dict:
     status = order["status"]
     
     if status == "delivered":
+        msg="Order is eligible for a refund."
+        if reason:
+            msg += f" Reason for refund request: {reason}"
         return {
             "refund_eligible": True,
             "refund_amount": order["total"],
             "status": status,
-            "message": "Order is eligible for a refund."
+            "message": msg
         }
     elif status == "shipped":
+        msg="Order is currently shipped and must be delivered before initiating a refund."
+        if reason:
+            msg += f" Reason for refund request: {reason}"
         return {
             "refund_eligible": False,
             "refund_amount": 0,
             "status": status,
-            "message": "Order is currently shipped and must be delivered before initiating a refund."
+            "message": msg
         }
     elif status == "refunded":
+        msg="Order has already been refunded."
+        if reason:
+            msg += f" Reason for refund request: {reason}"
         return {
             "refund_eligible": False,
             "refund_amount": 0,
             "status": status,
-            "message": "Order has already been refunded."
+            "message": msg
         }
     else:
+        msg=f"Order status '{status}' is not eligible for a refund."
+        if reason:
+            msg += f" Reason for refund request: {reason}"
         return {
             "refund_eligible": False,
             "refund_amount": 0,
             "status": status,
-            "message": f"Order status '{status}' is not eligible for a refund."
+            "message": msg
         }

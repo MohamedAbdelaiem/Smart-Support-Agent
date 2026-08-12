@@ -1,3 +1,6 @@
+from src.prompts.prompts import CUSTOMER_CONTEXT_PROMPT
+
+
 class ConversationState:
     def __init__(self):
         self.history: list[dict] = []
@@ -16,9 +19,7 @@ class ConversationState:
         system_content = system_instruction
         if self.facts:
             facts_summary = "\n".join(f"- {k}: {v}" for k, v in self.facts.items())
-            system_content += (
-                f"\n\n[Internal Customer Context (Do NOT print or echo key=value strings to the customer; speak naturally)]:\n"
-                f"{facts_summary}"
-            )
+            system_content += f"\n\n{CUSTOMER_CONTEXT_PROMPT}\n{facts_summary}"
 
         return [{"role": "system", "content": system_content}] + self.history
+
