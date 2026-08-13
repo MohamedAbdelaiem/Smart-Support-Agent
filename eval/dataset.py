@@ -16,13 +16,16 @@ def ensure_dataset(client: Client):
         
         for case in test_cases:
             client.create_example(
-                inputs={"input": case["input"]},
+                inputs={"input": case["ticket_text"]},
                 outputs={
-                    "expected_label": case["expected_label"],
-                    "expected_tool": case["expected_tool"],
                     "expected_behavior": case["expected_behavior"],
-                    "grounding_trap": case["grounding_trap"],
+                    "expected_order_id": case["expected_order_id"],
+                    "expected_status": case["expected_status"],
+                    "expected_label": case["expected_label"],
+                    "must_contain": case["must_contain"],
+                    "must_not_contain": case["must_not_contain"],
                 },
                 dataset_id=dataset.id,
-            )
+    )
+
         print("Dataset uploaded successfully!")

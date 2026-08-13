@@ -28,7 +28,7 @@ def log_request(
         f.write(json.dumps(log_data) + "\n")
 
     # Clean, easy-on-the-eyes console log output
-    tools_str = f" | Tools: {', '.join(tool_calls)}" if tool_calls else ""
-    print(f"📊 [LOG] Latency: {round(latency_ms)}ms | Tokens: {input_tokens}in/{output_tokens}out{tools_str}")
+        tools_str = f" | Tools: {', '.join(tool_calls)}" if tool_calls else ""
+        print(f"📊 [LOG] Latency: {round(latency_ms)}ms | Tokens: {input_tokens}in/{output_tokens}out{tools_str}")
 
     return log_data

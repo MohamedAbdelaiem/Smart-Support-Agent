@@ -11,7 +11,7 @@ if not DATABASE_URL:
 ## 1) create the engine
 engine = create_engine(
     DATABASE_URL,
-    echo=True,
+    echo=False,
 )
     
 ## 2) Create session
