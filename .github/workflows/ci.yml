@@ -11,6 +11,21 @@ jobs:
     name: Run Unit Tests & Linting
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: smart_support_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -28,9 +43,17 @@ jobs:
       - name: Install Dependencies
         run: uv sync --frozen || uv sync
 
+      - name: Seed Test Database
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres_password@localhost:5432/smart_support_db"
+          OPENROUTER_API_KEY: "mock_key_for_ci"
+        run: |
+          uv run python -m scripts.seed_golden_examples || true
+
       - name: Run Tests
         env:
+          DATABASE_URL: "postgresql://postgres:postgres_password@localhost:5432/smart_support_db"
           GROQ_API_KEY: "mock_key_for_ci"
           OPENROUTER_API_KEY: "mock_key_for_ci"
         run: |
-          uv run pytest -v -m "not integration" || uv run pytest -v
+          uv run pytest -v
