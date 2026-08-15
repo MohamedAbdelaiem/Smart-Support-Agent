@@ -12,8 +12,11 @@ dependencies = [
     "jsonschema>=4.26.0",
     "langsmith>=0.10.17",
     "openai>=2.54.0",
+    "pgvector>=0.2.5",
+    "psycopg2-binary>=2.9.9",
     "pytest>=9.1.1",
     "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.0",
 ]
 
 [tool.pytest.ini_options]
