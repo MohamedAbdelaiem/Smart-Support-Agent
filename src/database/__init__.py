@@ -1,5 +1,5 @@
 from src.database.connection import Base, engine, SessionLocal, create_tables, get_session
-from src.database.models import Customer, Order
+from src.database.models import Customer, Order , GoldenExample
 from src.database.crud import (
     parse_uuid,
     get_customer_by_id,
@@ -17,11 +17,12 @@ from src.database.crud import (
 __all__ = [
     "Base",
     "engine",
-    "SessionLocal",
+    "SessionLocal", 
     "create_tables",
     "get_session",
     "Customer",
     "Order",
+    "GoldenExample",
     "parse_uuid",
     "get_customer_by_id",
     "get_customer_by_name",

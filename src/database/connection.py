@@ -23,6 +23,10 @@ class Base(DeclarativeBase):
 
 ## function to create the tables
 def create_tables():
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        conn.commit()
     Base.metadata.create_all(engine)
 
 def get_session():

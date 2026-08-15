@@ -21,10 +21,20 @@ def list_all_customers(session: Session) -> list[Customer]:
 
 
 def customer_to_dict(customer: Customer) -> dict:
-    """Serializes a Customer ORM instance into a clean dictionary."""
+    """Serializes a Customer ORM instance into a clean dictionary including associated orders."""
     return {
         "customer_id": str(customer.id),
         "name": customer.name,
+        "orders": [
+            {
+                "order_id": str(o.id),
+                "status": o.status,
+                "items": o.items or [],
+                "total": o.total_amount,
+                "delivery_date": o.delivery_date.isoformat() if o.delivery_date else None,
+            }
+            for o in (customer.orders or [])
+        ],
     }
 
 

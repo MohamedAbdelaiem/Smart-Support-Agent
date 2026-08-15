@@ -15,6 +15,7 @@ from src.tools.schemas import (
     LOOKUP_CUSTOMER_SCHEMA,
 )
 from src.state import ConversationState
+from src.rag.few_shot_retriever import retrieve_similar_examples, format_few_shot_examples
 
 
 # Registry of available tools and their validation schemas for LLM execution
@@ -46,6 +47,22 @@ def execute_tool(name: str, raw_input: dict, schema: dict | None = None) -> dict
         if not valid:
             return {"error": f"Invalid arguments: {err}"}
 
+    # Programmatic Guardrail: Reject placeholder / dummy arguments
+    INVALID_PLACEHOLDERS = {
+        "your name", "user", "customer", "customer_name", "name",
+        "john doe", "jane doe", "unknown", "none", "null", "n/a", "undefined"
+    }
+
+    if name == "lookup_customer":
+        cust_name = str(raw_input.get("name", "")).strip().lower()
+        if not cust_name or cust_name in INVALID_PLACEHOLDERS:
+            return {"error": "Invalid argument: Please provide the customer's actual real name."}
+
+    if name in ("lookup_order", "refund_check", "process_refund"):
+        order_id = str(raw_input.get("order_id", "")).strip().lower()
+        if not order_id or order_id in INVALID_PLACEHOLDERS:
+            return {"error": "Invalid argument: Please provide a valid order ID."}
+
     try:
         return TOOL_REGISTRY[name](**raw_input)
     except Exception as e:
@@ -65,7 +82,15 @@ def run_agent(
         "\n\nIMPORTANT TOOL INSTRUCTION: When calling tools, generate native tool_calls ONLY. "
         "Do not output function tags or text like <function=...> in your text content."
     )
-    full_system_instruction = system_instruction + tool_instructions
+
+    # RAG context injection
+    # 1. Retrieve similar past examples
+    similar_examples = retrieve_similar_examples(user_query, top_k=3)
+    # 2. Format them into prompt text
+    rag_context = format_few_shot_examples(similar_examples)
+
+    # 3. Inject into system instruction
+    full_system_instruction = system_instruction + rag_context + tool_instructions
 
     if isinstance(state, ConversationState):
         # Dynamically extract key facts from user input via LLM
@@ -85,7 +110,7 @@ def run_agent(
 
     executed_tools = []
     for _ in range(max_turns):
-        response = generate(system_instruction, messages, tools=GROQ_TOOLS, provider=provider)
+        response = generate(full_system_instruction, messages, tools=GROQ_TOOLS, provider=provider)
         assistant_message = response.choices[0].message
 
         # Extract tool calls (either native or parsed from text JSON fallback)
