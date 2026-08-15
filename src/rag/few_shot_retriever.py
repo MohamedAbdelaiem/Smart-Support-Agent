@@ -7,30 +7,33 @@ def retrieve_similar_examples(query: str, top_k: int = 3) -> list[dict]:
     Embeds the input query and retrieves the top_k most similar 
     golden examples from PostgreSQL using pgvector cosine distance.
     """
-    query_embedding = generate_embedding(query)
-    if not query_embedding:
-        return []
-
-    session = get_session()
     try:
-        # pgvector provides .cosine_distance() on Vector columns
-        results = (
-            session.query(GoldenExample)
-            .order_by(GoldenExample.embedding.cosine_distance(query_embedding))
-            .limit(top_k)
-            .all()
-        )
-        
-        return [
-            {
-                "user_query": ex.user_query,
-                "perfect_response": ex.perfect_response,
-                "category": ex.category,
-            }
-            for ex in results
-        ]
-    finally:
-        session.close()
+        query_embedding = generate_embedding(query)
+        if not query_embedding:
+            return []
+
+        session = get_session()
+        try:
+            results = (
+                session.query(GoldenExample)
+                .order_by(GoldenExample.embedding.cosine_distance(query_embedding))
+                .limit(top_k)
+                .all()
+            )
+            
+            return [
+                {
+                    "user_query": ex.user_query,
+                    "perfect_response": ex.perfect_response,
+                    "category": ex.category,
+                }
+                for ex in results
+            ]
+        finally:
+            session.close()
+    except Exception as e:
+        print(f"RAG retrieval error (falling back to empty context): {e}")
+        return []
 
 
 def format_few_shot_examples(examples: list[dict]) -> str:

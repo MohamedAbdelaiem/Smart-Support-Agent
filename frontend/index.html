@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Support Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0f0f13;
+  --surface:#18181f;
+  --surface2:#1e1e27;
+  --surface3:#24242e;
+  --border:#2a2a36;
+  --border2:#32323f;
+  --primary:#7c3aed;
+  --primary-h:#6d28d9;
+  --primary-glow:rgba(124,58,237,.25);
+  --accent:#a78bfa;
+  --text:#f1f1f5;
+  --text2:#a0a0b8;
+  --text3:#5a5a72;
+  --user-bubble:#7c3aed;
+  --ai-bubble:#1e1e27;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --r:14px;--r2:10px;--r3:8px;
+  --shadow:0 8px 32px rgba(0,0,0,.45);
+  --sidebar:260px;
+  --ease:.18s cubic-bezier(.4,0,.2,1);
+}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  overflow:hidden;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ═══════════════════════════ LAYOUT ═══ */
+.app{display:flex;width:100%;height:100vh;overflow:hidden}
+
+/* ═══════════════════════════ SIDEBAR ═══ */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Subtle gradient top accent */
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--primary),transparent);
+}
+
+/* Brand */
+.brand{
+  padding:22px 18px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.brand-icon{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px var(--primary-glow);
+  flex-shrink:0;font-size:18px;
+}
+.brand-name{font-size:15px;font-weight:700;color:var(--text);line-height:1.2}
+.brand-sub{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* Section */
+.sidebar-section{padding:14px 14px 0}
+.section-label{
+  font-size:10.5px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;
+}
+
+/* User dropdown */
+.user-btn{
+  width:100%;display:flex;align-items:center;gap:9px;
+  padding:9px 11px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--r3);
+  cursor:pointer;color:var(--text);
+  transition:all var(--ease);
+  font-size:13.5px;font-weight:500;
+  font-family:inherit;
+  user-select:none;
+  margin-bottom:8px;
+}
+.user-btn:hover{border-color:var(--primary);background:var(--surface3)}
+.user-btn .uavatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  color:#fff;font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.user-btn .uname{flex:1;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.user-btn .chevron{color:var(--text3);transition:transform var(--ease);flex-shrink:0}
+.user-btn.open .chevron{transform:rotate(180deg)}
+
+/* Dropdown menu */
+.dropdown-menu{
+  background:var(--surface3);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  display:none;margin-bottom:8px;
+}
+.dropdown-menu.open{display:block;animation:fade-in .12s ease}
+.dd-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 12px;cursor:pointer;
+  transition:background var(--ease);
+  font-size:13px;
+}
+.dd-item:hover{background:rgba(124,58,237,.15)}
+.dd-item.active{background:rgba(124,58,237,.2);color:var(--accent)}
+.dd-item .uavatar{
+  width:24px;height:24px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  color:#fff;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* Create user btn */
+.btn-create-user{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px;border:1.5px dashed var(--border2);
+  border-radius:var(--r3);
+  background:transparent;color:var(--text2);
+  font-size:12.5px;font-weight:500;font-family:inherit;
+  cursor:pointer;transition:all var(--ease);
+}
+.btn-create-user:hover{border-color:var(--primary);color:var(--accent);background:var(--primary-glow)}
+
+/* Create user inline form */
+.create-form{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--r3);padding:12px;margin-top:8px;
+  display:none;
+}
+.create-form.open{display:block;animation:fade-in .15s ease}
+.form-input{
+  width:100%;padding:8px 10px;
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:var(--r3);color:var(--text);
+  font-size:13px;font-family:inherit;outline:none;
+  transition:border-color var(--ease);margin-bottom:8px;
+}
+.form-input::placeholder{color:var(--text3)}
+.form-input:focus{border-color:var(--primary)}
+.form-row{display:flex;gap:6px}
+.btn-sm{
+  flex:1;padding:7px;border-radius:var(--r3);
+  font-size:12.5px;font-weight:500;font-family:inherit;
+  cursor:pointer;transition:all var(--ease);border:none;
+}
+.btn-sm.primary{background:var(--primary);color:#fff}
+.btn-sm.primary:hover{background:var(--primary-h)}
+.btn-sm.ghost{background:var(--surface3);color:var(--text2);border:1px solid var(--border2)}
+.btn-sm.ghost:hover{border-color:var(--primary);color:var(--text)}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0 0}
+
+/* Conversations */
+.conv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.conv-header .section-label{margin-bottom:0}
+.btn-new-conv{
+  display:flex;align-items:center;gap:4px;
+  padding:4px 9px;background:var(--primary);
+  color:#fff;border:none;border-radius:6px;
+  font-size:11px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:background var(--ease);
+}
+.btn-new-conv:hover{background:var(--primary-h)}
+
+/* Conv list */
+.conv-list{flex:1;overflow-y:auto;padding:0 14px 8px}
+
+.conv-item{
+  padding:10px 11px;border-radius:var(--r2);
+  cursor:pointer;margin-bottom:3px;
+  border:1px solid transparent;
+  transition:all var(--ease);
+  position:relative;
+}
+.conv-item:hover{background:var(--surface2);border-color:var(--border2)}
+.conv-item.active{
+  background:rgba(124,58,237,.12);
+  border-color:var(--primary);
+}
+.conv-item.active::before{
+  content:'';position:absolute;left:0;top:12px;bottom:12px;
+  width:2px;background:var(--primary);border-radius:0 2px 2px 0;
+}
+.conv-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.conv-icon{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.conv-title{
+  flex:1;font-size:13px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--text);
+}
+.conv-preview{
+  font-size:11.5px;color:var(--text3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding-left:36px;
+}
+.conv-del{
+  position:absolute;right:8px;top:8px;
+  width:20px;height:20px;border-radius:4px;
+  background:transparent;border:none;
+  color:var(--text3);cursor:pointer;
+  display:none;align-items:center;justify-content:center;
+  font-size:13px;transition:all var(--ease);
+}
+.conv-item:hover .conv-del{display:flex}
+.conv-del:hover{background:rgba(239,68,68,.2);color:#ef4444}
+
+/* Sidebar footer */
+.sidebar-footer{
+  padding:13px 14px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.footer-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 2px 8px var(--primary-glow);
+}
+.footer-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.footer-role{font-size:10.5px;color:var(--text3)}
+
+/* Online dot */
+.online-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--success);
+  box-shadow:0 0 6px var(--success);
+  flex-shrink:0;margin-left:auto;
+}
+
+/* ═══════════════════════════ CHAT AREA ═══ */
+.chat-area{
+  flex:1;display:flex;flex-direction:column;
+  background:var(--bg);overflow:hidden;
+}
+
+/* Chat header */
+.chat-header{
+  padding:16px 22px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.chat-header-left{display:flex;flex-direction:column;gap:3px}
+.chat-title{font-size:16px;font-weight:700;color:var(--text)}
+.chat-status{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text3)}
+.chat-status .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--success);box-shadow:0 0 5px var(--success);
+}
+
+.header-actions{display:flex;gap:8px}
+.btn-icon{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 12px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--r3);
+  color:var(--text2);font-size:12px;font-weight:500;
+  cursor:pointer;transition:all var(--ease);font-family:inherit;
+}
+.btn-icon:hover{border-color:var(--primary);color:var(--accent)}
+.btn-icon.danger:hover{border-color:#ef4444;color:#f87171;background:rgba(239,68,68,.08)}
+
+/* Messages */
+.messages-area{
+  flex:1;overflow-y:auto;
+  padding:28px 24px;
+  display:flex;flex-direction:column;
+  gap:0;
+}
+
+/* Empty state */
+.empty-state{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;padding:64px 32px;text-align:center;
+}
+.empty-orb{
+  width:80px;height:80px;border-radius:24px;
+  background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(91,33,182,.1));
+  border:1px solid rgba(124,58,237,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;
+  box-shadow:0 0 40px rgba(124,58,237,.15);
+  animation:pulse-glow 3s ease infinite;
+}
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 30px rgba(124,58,237,.12)}
+  50%{box-shadow:0 0 50px rgba(124,58,237,.28)}
+}
+.empty-title{font-size:20px;font-weight:700;color:var(--text)}
+.empty-sub{font-size:13.5px;color:var(--text2);max-width:340px;line-height:1.7}
+.btn-start{
+  padding:11px 26px;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  color:#fff;border:none;border-radius:var(--r3);
+  font-size:13.5px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:all var(--ease);
+  box-shadow:0 4px 16px var(--primary-glow);
+}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--primary-glow)}
+
+/* Suggestion chips */
+.suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:480px}
+.chip{
+  padding:7px 14px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:20px;font-size:12.5px;color:var(--text2);
+  cursor:pointer;transition:all var(--ease);
+  font-family:inherit;
+}
+.chip:hover{border-color:var(--primary);color:var(--accent);background:rgba(124,58,237,.1)}
+
+/* Message group */
+.msg-group{
+  display:flex;flex-direction:column;gap:2px;
+  margin-bottom:18px;
+}
+.msg-row{display:flex;align-items:flex-end;gap:9px}
+.msg-row.user{flex-direction:row-reverse}
+
+.ai-avatar-icon{
+  width:30px;height:30px;min-width:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;box-shadow:0 2px 8px var(--primary-glow);
+}
+
+.bubble{
+  max-width:68%;padding:11px 15px;
+  font-size:13.5px;line-height:1.65;
+  animation:bubble-in .15s ease;
+}
+@keyframes bubble-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.bubble.user{
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  color:#fff;border-radius:18px 18px 4px 18px;
+  box-shadow:0 4px 14px var(--primary-glow);
+}
+.bubble.ai{
+  background:var(--surface2);color:var(--text);
+  border:1px solid var(--border2);
+  border-radius:18px 18px 18px 4px;
+}
+
+.msg-meta{
+  font-size:10.5px;color:var(--text3);
+  margin-top:4px;display:flex;align-items:center;gap:4px;
+}
+.msg-row.user .msg-meta{justify-content:flex-end}
+.check{color:var(--accent);font-size:11px}
+
+/* Tool badges */
+.tool-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tool-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;
+  background:rgba(124,58,237,.15);
+  border:1px solid rgba(124,58,237,.3);
+  color:var(--accent);border-radius:20px;
+  font-size:11px;font-weight:500;
+}
+
+/* Typing indicator */
+.typing-row{display:flex;align-items:flex-end;gap:9px;margin-bottom:18px}
+.typing-bubble{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:18px 18px 18px 4px;
+  padding:12px 16px;display:flex;gap:5px;align-items:center;
+}
+.dot-pulse{width:7px;height:7px;background:var(--text3);border-radius:50%;animation:dot-bounce 1.3s infinite}
+.dot-pulse:nth-child(2){animation-delay:.2s}
+.dot-pulse:nth-child(3){animation-delay:.4s}
+@keyframes dot-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* Date separator */
+.date-sep{
+  text-align:center;margin:10px 0 16px;
+  font-size:11px;color:var(--text3);
+  display:flex;align-items:center;gap:10px;
+}
+.date-sep::before,.date-sep::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* ═══════════════════════════ INPUT BAR ═══ */
+.input-bar{
+  padding:14px 20px 18px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.input-wrap{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface2);
+  border:1.5px solid var(--border2);
+  border-radius:var(--r);
+  padding:8px 10px 8px 16px;
+  transition:border-color var(--ease);
+}
+.input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.msg-input{
+  flex:1;border:none;background:transparent;outline:none;
+  color:var(--text);font-size:13.5px;font-family:inherit;
+  resize:none;line-height:1.5;max-height:120px;
+  padding:4px 0;
+}
+.msg-input::placeholder{color:var(--text3)}
+.btn-send{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--primary),#5b21b6);
+  border:none;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all var(--ease);flex-shrink:0;
+  box-shadow:0 3px 10px var(--primary-glow);
+}
+.btn-send:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px var(--primary-glow)}
+.btn-send:disabled{background:var(--surface3);box-shadow:none;cursor:not-allowed}
+.input-hint{
+  text-align:center;font-size:11px;color:var(--text3);margin-top:8px;
+}
+.input-hint span{color:var(--accent)}
+
+/* ═══════════════════════════ ANIMATIONS ═══ */
+@keyframes fade-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar">
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-icon">🤖</div>
+    <div>
+      <div class="brand-name">Smart Support Agent</div>
+      <div class="brand-sub">AI-powered support assistant</div>
+    </div>
+  </div>
+
+  <!-- User section -->
+  <div class="sidebar-section" style="padding-bottom:12px;border-bottom:1px solid var(--border)">
+    <div class="section-label">Who are you?</div>
+
+    <!-- Dropdown trigger -->
+    <button class="user-btn" id="userBtn">
+      <div class="uavatar" id="selectorAvatar">M</div>
+      <span class="uname" id="selectorName">Mohamed</span>
+      <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
+
+    <!-- Dropdown list -->
+    <div class="dropdown-menu" id="dropdownMenu"></div>
+
+    <!-- Create user button -->
+    <button class="btn-create-user" id="btnShowCreate">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Create New User
+    </button>
+
+    <!-- Inline create form -->
+    <div class="create-form" id="createForm">
+      <input class="form-input" id="newUserName" type="text" placeholder="Your name…" autocomplete="off"/>
+      <div class="form-row">
+        <button class="btn-sm primary" id="btnConfirmCreate">Create</button>
+        <button class="btn-sm ghost" id="btnCancelCreate">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversations -->
+  <div class="sidebar-section" style="padding-bottom:6px">
+    <div class="conv-header">
+      <div class="section-label">Conversations</div>
+      <button class="btn-new-conv" id="btnNewConv">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        New
+      </button>
+    </div>
+  </div>
+
+  <div class="conv-list" id="convList"></div>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="footer-avatar" id="footerAvatar">M</div>
+    <div>
+      <div class="footer-name" id="footerName">Mohamed</div>
+      <div class="footer-role">Current user</div>
+    </div>
+    <div class="online-dot" title="Backend connected"></div>
+  </div>
+</aside>
+
+<!-- ══════════ CHAT AREA ══════════ -->
+<main class="chat-area">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-title" id="chatTitle">Select a conversation</div>
+      <div class="chat-status"><div class="dot"></div><span id="chatStatus">Ready</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon danger" id="btnClear" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Clear chat
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-area" id="messagesArea">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-orb">🤖</div>
+      <div class="empty-title">Smart Support Agent</div>
+      <div class="empty-sub">Get instant help with billing, technical issues, orders, and account management. Powered by AI + real-time database lookups.</div>
+      <div class="suggestions" id="suggestionChips">
+        <button class="chip" data-q="What's the status of my order ORD-1001?">📦 Order status</button>
+        <button class="chip" data-q="I was charged twice this month, can you help?">💳 Billing issue</button>
+        <button class="chip" data-q="My name is Alice Smith, what are my orders?">👤 My orders</button>
+        <button class="chip" data-q="I want to request a refund for order ORD-1005">↩ Refund request</button>
+        <button class="chip" data-q="I can't log into my account, it says wrong password">🔐 Account access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea class="msg-input" id="msgInput" placeholder="Ask about your order, billing, or account…" rows="1" maxlength="2000" disabled></textarea>
+      <button class="btn-send" id="btnSend" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Smart Support Agent uses real data · <span>Ask anything about billing, orders, or accounts</span></div>
+  </div>
+</main>
+</div>
+
+<script>
+const API = '';
+
+// ── Conv icon/color sets ──
+const ICONS   = ['💳','⚙️','🔐','📦','🧾','💬','🔄','📋'];
+const BG_CLRS = [
+  'rgba(124,58,237,.2)','rgba(16,185,129,.2)','rgba(234,88,12,.2)',
+  'rgba(37,99,235,.2)','rgba(219,39,119,.2)','rgba(245,158,11,.2)',
+];
+
+// ── State ──
+const S = {
+  users: ['Mohamed','Ahmed','Sara','Omar'],
+  currentUser: 'Mohamed',
+  conversations: {'Mohamed':{},'Ahmed':{},'Sara':{},'Omar':{}},
+  activeConv: {},          // user -> convId
+  isTyping: false,
+};
+
+// ── Helpers ──
+const $ = id => document.getElementById(id);
+const initials = n => n.trim().split(' ').map(w=>w[0].toUpperCase()).join('').slice(0,2);
+const nowTime  = () => { const d=new Date(); let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${String(m).padStart(2,'0')} ${ap}`; };
+const sessId   = (u,c) => `${u.toLowerCase().replace(/\s+/g,'_')}_${c}`;
+const curConvs = () => S.conversations[S.currentUser] || {};
+const actConvId= () => S.activeConv[S.currentUser];
+const actConv  = () => curConvs()[actConvId()];
+const escHtml  = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtAI    = t => escHtml(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+
+function newConvId(){ return 'cv_'+Date.now(); }
+
+// ── Create conversation ──
+function createConv(title='New conversation'){
+  if(!S.conversations[S.currentUser]) S.conversations[S.currentUser]={};
+  const cid = newConvId();
+  const idx  = Object.keys(S.conversations[S.currentUser]).length;
+  S.conversations[S.currentUser][cid]={
+    title, messages:[],
+    icon:ICONS[idx%ICONS.length], bg:BG_CLRS[idx%BG_CLRS.length],
+  };
+  S.activeConv[S.currentUser]=cid;
+  return cid;
+}
+
+// ── Render ──
+function renderAll(){
+  renderDropdown(); renderFooter(); renderConvList(); renderChat();
+}
+
+function renderDropdown(){
+  const u = S.currentUser;
+  $('selectorAvatar').textContent = initials(u);
+  $('selectorName').textContent   = u;
+  const menu = $('dropdownMenu');
+  menu.innerHTML = S.users.map(n=>`
+    <div class="dd-item ${n===u?'active':''}" data-u="${n}">
+      <div class="uavatar">${initials(n)}</div>${n}
+    </div>`).join('');
+  menu.querySelectorAll('.dd-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      S.currentUser = el.dataset.u;
+      if(!S.conversations[S.currentUser]) S.conversations[S.currentUser]={};
+      closeDropdown(); renderAll();
+    });
+  });
+}
+
+function renderFooter(){
+  const u=S.currentUser;
+  $('footerAvatar').textContent=initials(u);
+  $('footerName').textContent=u;
+}
+
+function renderConvList(){
+  const list   = $('convList');
+  const convs  = curConvs();
+  const entries = Object.entries(convs).reverse();
+  if(!entries.length){
+    list.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:4px 14px">No conversations yet</p>`;
+    return;
+  }
+  list.innerHTML = entries.map(([cid,c])=>`
+    <div class="conv-item ${cid===actConvId()?'active':''}" data-cid="${cid}">
+      <div class="conv-row">
+        <div class="conv-icon" style="background:${c.bg}">${c.icon}</div>
+        <div class="conv-title">${escHtml(c.title)}</div>
+        <button class="conv-del" data-del="${cid}" title="Delete">✕</button>
+      </div>
+      <div class="conv-preview">${c.messages.length?escHtml(c.messages[0].content.slice(0,42))+'…':'Start typing…'}</div>
+    </div>`).join('');
+
+  list.querySelectorAll('.conv-item').forEach(el=>{
+    el.addEventListener('click',e=>{
+      if(e.target.closest('.conv-del')) return;
+      S.activeConv[S.currentUser]=el.dataset.cid;
+      renderConvList(); renderChat();
+    });
+  });
+  list.querySelectorAll('.conv-del').forEach(el=>{
+    el.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const cid=el.dataset.del;
+      if(!confirm('Delete this conversation?')) return;
+      try{ await fetch(`${API}/api/chat/${encodeURIComponent(sessId(S.currentUser,cid))}`,{method:'DELETE'}); }catch(_){}
+      delete S.conversations[S.currentUser][cid];
+      if(actConvId()===cid) S.activeConv[S.currentUser]=null;
+      renderConvList(); renderChat();
+    });
+  });
+}
+
+function renderChat(){
+  const conv  = actConv();
+  const area  = $('messagesArea');
+  const input = $('msgInput');
+  const send  = $('btnSend');
+  $('btnClear').style.display = conv ? 'flex' : 'none';
+
+  if(!conv){
+    $('chatTitle').textContent  = 'Smart Support Agent';
+    $('chatStatus').textContent = 'Select or start a conversation';
+    input.disabled = true; send.disabled = true;
+    area.innerHTML = emptyHTML(); bindChips();
+    return;
+  }
+
+  $('chatTitle').textContent  = conv.title;
+  $('chatStatus').textContent = 'Active conversation';
+  input.disabled = false;
+  syncSend();
+
+  if(!conv.messages.length){
+    area.innerHTML=`
+      <div class="empty-state">
+        <div class="empty-orb" style="font-size:28px">💬</div>
+        <div class="empty-title" style="font-size:16px">Ready to help</div>
+        <div class="empty-sub">Type your first message below or pick a suggestion.</div>
+        <div class="suggestions">${suggestionChips()}</div>
+      </div>`;
+    area.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>sendMsg(c.dataset.q)));
+    return;
+  }
+
+  area.innerHTML = buildMessages(conv.messages) + (S.isTyping ? typingHTML() : '');
+  area.scrollTop = area.scrollHeight;
+}
+
+function emptyHTML(){
+  return `
+    <div class="empty-state" id="emptyState">
+      <div class="empty-orb">🤖</div>
+      <div class="empty-title">Smart Support Agent</div>
+      <div class="empty-sub">Get instant help with billing, technical issues, orders, and account management. Powered by AI + real-time database lookups.</div>
+      <div class="suggestions" id="suggestionChips">${suggestionChips()}</div>
+    </div>`;
+}
+
+function suggestionChips(){
+  const qs=[
+    {e:'📦',l:'Order status',q:'What\'s the status of my order ORD-1001?'},
+    {e:'💳',l:'Billing issue',q:'I was charged twice this month, can you help?'},
+    {e:'👤',l:'My orders',q:'My name is Alice Smith, what are my orders?'},
+    {e:'↩',l:'Refund request',q:'I want to request a refund for order ORD-1005'},
+    {e:'🔐',l:'Account access',q:'I can\'t log into my account, it says wrong password'},
+  ];
+  return qs.map(x=>`<button class="chip" data-q="${x.q}">${x.e} ${x.l}</button>`).join('');
+}
+
+function bindChips(){
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(!actConv()) createConv();
+      sendMsg(c.dataset.q);
+    });
+  });
+}
+
+function buildMessages(msgs){
+  let html='';
+  let lastRole=null;
+  msgs.forEach((m,i)=>{
+    const isUser = m.role==='user';
+    const newGroup = m.role!==lastRole;
+    if(newGroup && i>0) html+='</div>';
+    if(newGroup) html+=`<div class="msg-group">`;
+
+    if(isUser){
+      html+=`
+        <div class="msg-row user">
+          <div>
+            <div class="bubble user">${fmtAI(m.content)}</div>
+            <div class="msg-meta">${m.time||''} <span class="check">✓✓</span></div>
+          </div>
+        </div>`;
+    } else {
+      const toolBadges = (m.tool_calls||[]).length
+        ? `<div class="tool-badges">${(m.tool_calls).map(t=>`<span class="tool-badge">⚙️ ${t.name}</span>`).join('')}</div>` : '';
+      html+=`
+        <div class="msg-row ai">
+          ${newGroup ? `<div class="ai-avatar-icon">🤖</div>` : `<div style="width:30px;min-width:30px"></div>`}
+          <div>
+            <div class="bubble ai">${fmtAI(m.content)}</div>
+            ${toolBadges}
+            <div class="msg-meta">${m.time||''}</div>
+          </div>
+        </div>`;
+    }
+    lastRole=m.role;
+  });
+  if(msgs.length) html+='</div>';
+  return html;
+}
+
+function typingHTML(){
+  return `
+    <div class="typing-row">
+      <div class="ai-avatar-icon">🤖</div>
+      <div class="typing-bubble">
+        <div class="dot-pulse"></div><div class="dot-pulse"></div><div class="dot-pulse"></div>
+      </div>
+    </div>`;
+}
+
+// ── Dropdown ──
+const userBtn  = $('userBtn');
+const dropMenu = $('dropdownMenu');
+userBtn.addEventListener('click',()=>{
+  const o=dropMenu.classList.toggle('open');
+  userBtn.classList.toggle('open',o);
+});
+document.addEventListener('click',e=>{
+  if(!userBtn.contains(e.target)&&!dropMenu.contains(e.target)) closeDropdown();
+});
+function closeDropdown(){ dropMenu.classList.remove('open'); userBtn.classList.remove('open'); }
+
+// ── Create user form ──
+$('btnShowCreate').addEventListener('click',()=>{
+  $('createForm').classList.toggle('open');
+  if($('createForm').classList.contains('open')) $('newUserName').focus();
+});
+$('btnCancelCreate').addEventListener('click',()=>{ $('createForm').classList.remove('open'); $('newUserName').value=''; });
+$('btnConfirmCreate').addEventListener('click',()=>{
+  const n=$('newUserName').value.trim();
+  if(!n) return $('newUserName').focus();
+  if(!S.users.includes(n)){ S.users.push(n); S.conversations[n]={}; }
+  S.currentUser=n;
+  $('createForm').classList.remove('open');
+  $('newUserName').value='';
+  renderAll();
+});
+$('newUserName').addEventListener('keydown',e=>{ if(e.key==='Enter') $('btnConfirmCreate').click(); });
+
+// ── New conversation ──
+$('btnNewConv').addEventListener('click',()=>{ createConv(); renderAll(); $('msgInput').focus(); });
+
+// ── Clear chat ──
+$('btnClear').addEventListener('click',async()=>{
+  const conv=actConv(), cid=actConvId();
+  if(!conv||!confirm('Clear all messages?')) return;
+  try{ await fetch(`${API}/api/chat/${encodeURIComponent(sessId(S.currentUser,cid))}`,{method:'DELETE'}); }catch(_){}
+  conv.messages=[];
+  renderConvList(); renderChat();
+});
+
+// ── Input ──
+const msgInput=$('msgInput'), btnSend=$('btnSend');
+msgInput.addEventListener('input',()=>{
+  msgInput.style.height='auto';
+  msgInput.style.height=Math.min(msgInput.scrollHeight,120)+'px';
+  syncSend();
+});
+msgInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); btnSend.click(); } });
+btnSend.addEventListener('click',()=>{ const t=msgInput.value.trim(); if(t) sendMsg(t); });
+function syncSend(){ btnSend.disabled=!msgInput.value.trim()||S.isTyping||!actConv(); }
+
+// ── Send message ──
+async function sendMsg(text){
+  if(!text||S.isTyping) return;
+
+  // Ensure active conversation
+  if(!actConv()){
+    createConv(); renderConvList();
+  }
+
+  const conv=actConv(), cid=actConvId(), sid=sessId(S.currentUser,cid);
+
+  // Set conversation title from first message
+  if(!conv.messages.length){
+    conv.title = text.length>34 ? text.slice(0,34)+'…' : text;
+  }
+
+  // Push user message
+  conv.messages.push({role:'user',content:text,time:nowTime()});
+
+  // Clear input
+  msgInput.value=''; msgInput.style.height='auto';
+
+  // Show typing
+  S.isTyping=true;
+  renderConvList(); renderChat(); syncSend();
+
+  // Call backend
+  try{
+    const res = await fetch(`${API}/api/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        session_id: sid,
+        customer_name: S.currentUser,
+        user_message: text,
+        provider: 'openrouter'
+      }),
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    conv.messages.push({
+      role:'assistant',
+      content:data.message||'Sorry, I could not process your request.',
+      time:nowTime(),
+      tool_calls:data.tool_calls||[],
+    });
+  }catch(err){
+    const isConn = err.message.includes('Failed to fetch')||err.message.includes('NetworkError');
+    conv.messages.push({
+      role:'assistant',
+      content: isConn
+        ? '⚠️ **Cannot connect to the backend.** Make sure the FastAPI server is running on port 8000.\n\n```\nuv run uvicorn src.api.main:app --port 8000 --reload\n```'
+        : `⚠️ Error: ${err.message}`,
+      time:nowTime(), tool_calls:[],
+    });
+  }
+
+  S.isTyping=false;
+  renderConvList(); renderChat(); syncSend();
+}
+
+// ── Init ──
+async function initApp(){
+  try {
+    const res = await fetch(`${API}/api/customers`);
+    if(res.ok){
+      const data = await res.json();
+      if(data.customers && data.customers.length > 0){
+        S.users = data.customers.map(c => c.name);
+        S.currentUser = S.users[0];
+        S.users.forEach(u => {
+          if(!S.conversations[u]) S.conversations[u] = {};
+        });
+      }
+    }
+  } catch(e) {
+    console.warn("Could not fetch real customers from DB, using defaults:", e);
+  }
+  renderAll();
+}
+
+initApp();
+
+// Check backend health
+fetch(`${API}/health`).then(()=>{
+  $('chatStatus').textContent='Backend connected · Ready';
+}).catch(()=>{
+  $('chatStatus').textContent='⚠️ Backend offline – start FastAPI server';
+});
+</script>
+</body>
+</html>
