@@ -380,14 +380,19 @@ The agent is systematically evaluated against a fixed set of gold-standard test 
 2. **Grounding Trap Evaluator (`eval/evaluators.py`)** — programmatic check that verifies the agent expresses factual uncertainty instead of fabricating out-of-scope store policies or warranties.
 3. **Tool Call Verifier (`eval/evaluators.py`)** — validates that the exact expected tool (`lookup_order`, `refund_check`, `lookup_customer`, `process_refund`) is executed with matching arguments.
 
-Exported benchmark CSV runs (e.g. [`eval/results/agent-v2-openrouter-eval-834b2c58.csv`](eval/results/agent-v2-openrouter-eval-834b2c58.csv)) and full trace telemetry are tracked under the `smart-support-eval-set` dataset in LangSmith.
+Exported benchmark CSV runs (e.g. [`eval/results/agent-v2-openrouter-eval-834b2c58.csv`](eval/results/agent-v2-openrouter-eval-834b2c58.csv)) and full trace telemetry are tracked under the `smart-support-eval-set` dataset in LangSmith:
+
+![LangSmith Evaluation Dashboard & Latency Benchmarks](eval/images/image.png)
 
 ---
 
 ## Observability
 
-- **LangSmith** traces each run: prompt construction, tool calls, and final generation, with latency and token breakdowns.
-- **Local structured logs** (`request_logs.jsonl`) record the same telemetry for offline analysis, e.g.:
+- **LangSmith Distributed Tracing** — traces each run with prompt construction, tool executions, latency breakdown, and token usage:
+
+![LangSmith Tool Execution Tracing](eval/images/image%20copy.png)
+
+- **Local Structured Logging** (`request_logs.jsonl`) — records real-time telemetry for offline analysis, e.g.:
 
 ```text
 [LOG] Latency: 972ms | Tokens: 3543in/16out | Tools: lookup_customer
