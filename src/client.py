@@ -21,8 +21,7 @@ def call_with_retries(fn, max_retries=3, retry_delay=2):
             return fn()
         except RateLimitError as e:
             last_exception = e
-            # Increase backoff time for Groq rate limits
-            time.sleep(retry_delay * (2 ** attempt) + 1)
+            time.sleep(retry_delay * (2 ** attempt))
         except (APITimeoutError, APIConnectionError, InternalServerError, APIError) as e:
             last_exception = e
             if attempt == max_retries - 1:
