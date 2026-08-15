@@ -8,8 +8,6 @@
 [![LLM](https://img.shields.io/badge/LLM-OpenRouter_%2F_Groq-6366F1?style=flat)](https://openrouter.ai)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> **Note on this document:** figures such as test pass rates, grounding percentages, and latency numbers below are carried over from the project's own evaluation reports. If you've regenerated `eval/results/` since, swap in the current numbers before publishing.
-
 ---
 
 ## Table of Contents
